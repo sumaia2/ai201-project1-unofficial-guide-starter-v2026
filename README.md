@@ -1,19 +1,6 @@
 # The Unofficial Guide
 
-<!-- Replace this line with your name and which corpus you picked. -->
-
-> **This file is your submission.** Fill it in as you go — most sections get
-> written during the milestone that produces them, not at the end.
->
-> How the starter works, and every command you'll need, is in `RUNNING.md`.
-> Leave that file alone.
->
-> **Paste everything as text.** No screenshots, no video. A typed table gets
-> full credit; a picture of the same table gets none.
->
-> Delete these instruction blocks as you replace them. The `<!-- -->` comments
-> are notes to you and don't show up when the page renders — you can leave them
-> or remove them.
+**Sumaia Ali — corpus: campus_life**
 
 ---
 
@@ -21,109 +8,111 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+This system answers questions about student life at a fictional campus, using
+88 short posts covering topics like dining halls, housing, on-campus jobs, and
+course logistics. It's built for specific, factual questions — like dining
+hall hours, housing costs, or how many hours students can work on campus — and
+answers only from what's actually in those documents, naming its source. If a
+question falls outside what the corpus covers, it says so instead of guessing.
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Chunk size:** paragraph-based (no fixed character count), merged up to a 100-character minimum
+**Overlap:** none (paragraph splits are natural, non-overlapping boundaries)
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
-
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
-
-     Milestone 3. -->
+The starter's fixed 800-character chunker barely touched this corpus — 88
+documents became 88 chunks, because almost no post crosses 800 characters. But
+reading the documents in Milestone 1 showed that a single post often holds two
+or three genuinely separate ideas (e.g. a personal anecdote, then a distinct
+block of hours/cost facts). Splitting on blank-line paragraph breaks instead of
+a character count keeps each thought whole while still separating them where
+it matters. Paragraphs under 100 characters get merged into a neighboring one
+so a short heading or fragment never becomes its own thin, useless chunk. This
+produced 143 chunks (up from 88), averaging 194 characters, which matches how
+short these documents naturally are.
 
 ## Sample Chunks
 
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
+**Chunk 1** — source: `admin_add_drop_deadline.txt#0` — produced by: `chunker.py::split_documents`
 
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
+On the add/drop deadline
 
-     Milestone 3. -->
+You can add a course through the end of the second week. Dropping is a longer window — through the end of week six — but a drop after week two shows as a W on your transcript. Nothing anywhere on the registrar's site says this plainly, and students find out from each other.
 
-**Chunk 1** — source: `` — produced by: ``
 
-```
-```
+**Chunk 2** — source: `course_cs_340.txt#0` — produced by: `chunker.py::split_documents`
 
-**Chunk 2** — source: `` — produced by: ``
+CS 340 Databases
 
-```
-```
+I'm a junior and I've done this twice now. Format is lecture twice a week plus a project that runs the whole term. Assessment: one midterm and a final, both open-book. Lightly curved, usually two or three points.
 
-**Chunk 3** — source: `` — produced by: ``
 
-```
-```
+**Chunk 3** — source: `course_phys_130_exams.txt#0` — produced by: `chunker.py::split_documents`
 
-**Chunk 4** — source: `` — produced by: ``
+PHYS 130 Mechanics — assessment
 
-```
-```
+Three midterms, no final, plus a lab practical. Not curved, but the lowest midterm is dropped.
 
-**Chunk 5** — source: `` — produced by: ``
+The lab practical is worth 20% and almost nobody prepares for it.
 
-```
-```
+
+**Chunk 4** — source: `dining_verrill_street_grill_followup.txt#1` — produced by: `chunker.py::split_documents`
+
+Also worth saying: one register, so the queue is a single line no matter how busy. Nobody tells you this at orientation.
+
+
+**Chunk 5** — source: `housing_morrow_house.txt#1` — produced by: `chunker.py::split_documents`
+
+The good: cheapest housing tier by about $900 a year, and the singles are real singles.
+
+The bad: known damp problem on the ground floor; two rooms were taken offline in 2024.
+
 
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
-
-**Question:**
+**Question:** What are Halden Hall's hours and cost?
 
 **Answer:**
 
-```
-```
+Halden Hall's hours are 7:30am to 7:00pm on weekdays, and it is closed on
+Sundays. The cost is one meal swipe or $10.00 cash (dining_halden_hall.txt).
 
-**My relevance cutoff:**
+Source: dining_halden_hall.txt
 
-<!-- The number you set in config.py, and how you got there.
 
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
+**My relevance cutoff:** 0.6 (kept the starter's default)
 
-     Milestone 4. -->
+I ran my 5 in-scope test questions and the 5 OUT_OF_SCOPE questions and recorded
+the best distance for each. The two groups separated cleanly with a wide gap
+(0.392 to 0.803, no overlap), so the starter's default of 0.6 already sits
+comfortably in the middle — I didn't need to change it.
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| What are the wait times like at Halden Hall dining? | Yes | 0.195 |
+| What are Halden Hall's hours and cost? | Yes | 0.340 |
+| What kind of housing is Tamsin Court and what year was it built? | Yes | 0.259 |
+| What's the downside of living in Tamsin Court? | Yes | 0.392 |
+| How many hours a week can students work on campus, and what's recommended? | Yes | 0.316 |
+| What is the capital of Mongolia? | No | 0.825 |
+| How do I change the oil in a diesel engine? | No | 0.923 |
+| Who won the 1994 World Cup? | No | 0.874 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.803 |
+| How do I write a for loop in Rust? | No | 0.877 |
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
+**1.** I asked Claude to help me write a custom chunking strategy after seeing
+that the starter's fixed-size chunker wasn't splitting my corpus at all (88
+docs → 88 chunks). Claude suggested paragraph-based splitting with a minimum
+character merge threshold. I reviewed the output chunks myself to confirm they
+each held complete thoughts before committing.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
-
-     Milestone 5. -->
-
-**1.**
-
-**2.**
-
-<!-- ── Stretch features ─────────────────────────────────────────────────────
-     Doing one? Say so here BEFORE you start. A feature this README never
-     claims earns nothing.
-     ───────────────────────────────────────────────────────────────────────── -->
+**2.** I asked Claude to help me interpret my distance scores when setting the
+relevance cutoff in Milestone 4. I gave it my 10 recorded distances (5 in-scope,
+5 out-of-scope) and asked where the gap was. It confirmed the starter's default
+of 0.6 already sat well inside the gap, so I kept it rather than changing
+`config.py` unnecessarily.
 
 ---
 
