@@ -56,6 +56,14 @@ in at least 4 of 5 tries.
 ---
 
 ## 4. Something about your chunks
+For at least 4 of my 5 sampled chunks, the chunk reads as a complete thought —
+no sentence is cut off at the start or end.
+
+**Why this target:**
+My corpus (campus_life) is made of short, single-topic posts, so a good chunk
+should usually be a whole post or a whole self-contained idea. If chunks are
+routinely cutting sentences in half, that means my chunk size doesn't match
+the natural length of these documents.
 
 <!-- YOU WRITE THIS ONE.
 
@@ -78,6 +86,14 @@ in at least 4 of 5 tries.
 ---
 
 ## 5. Your choice
+The average best-distance for my 5 in-scope test questions is at least 0.15
+lower than the average best-distance for my 5 out-of-scope questions.
+
+**Why this target:**
+A relevance gate only means something if there's a real separation between
+"on topic" and "off topic" scores. If the two groups sit close together, my
+cutoff is just a guess rather than a measurement of anything real about how
+my retrieval behaves.
 
 <!-- YOU WRITE THIS ONE TOO.
 
