@@ -82,22 +82,47 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split documents into chunks based on paragraph breaks.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
+    campus_life documents are short posts (1-3 paragraphs) where each
+    paragraph is usually a complete, self-contained thought (a title line,
+    a personal anecdote, or a block of hard facts like hours/cost). Splitting
+    on blank lines keeps those thoughts intact instead of cutting mid-sentence
+    the way a fixed 800-character window does.
 
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Paragraphs shorter than MIN_CHUNK_CHARS are merged with the next paragraph
+    so a lone heading or one-line fragment doesn't become its own thin chunk.
     """
-    return fallback_split(documents)
+    MIN_CHUNK_CHARS = 100
+
+    chunks: list[Chunk] = []
+    for doc in documents:
+        paragraphs = [p.strip() for p in doc.text.split("\n\n") if p.strip()]
+
+        merged: list[str] = []
+        buffer = ""
+        for para in paragraphs:
+            buffer = f"{buffer}\n\n{para}".strip() if buffer else para
+            if len(buffer) >= MIN_CHUNK_CHARS:
+                merged.append(buffer)
+                buffer = ""
+        if buffer:
+            if merged:
+                merged[-1] = f"{merged[-1]}\n\n{buffer}"
+            else:
+                merged.append(buffer)
+
+        for index, piece in enumerate(merged):
+            chunks.append(
+                Chunk(
+                    text=piece,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:
