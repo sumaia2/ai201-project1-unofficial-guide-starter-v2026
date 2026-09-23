@@ -23,6 +23,10 @@ For at least 4 of my 5 test questions, the retrieved chunks include one that
 contains the answer.
 
 **Why this target:**
+One of my five questions asks about a downside of Tamsin Court, but my
+documents only mention one soft complaint ("isolating if you're new") in a
+single chunk — a topic covered thinly enough that I expect this one to be
+harder to retrieve reliably than the others.
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
 
@@ -33,6 +37,11 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
+The grounding instruction in generate.py explicitly requires the model to
+name a source file for every answer, and the gate stops any question that
+doesn't retrieve a chunk above the relevance cutoff — so an answer should
+never be produced without a source attached. All 5 is achievable because the
+system is designed to refuse rather than answer without one.
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
 
@@ -50,6 +59,11 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
+When I ran my 5 out-of-scope questions, their best distances (0.803-0.923)
+were all well above my 0.6 cutoff, with a clean gap from my in-scope
+questions (0.195-0.392). That separation was wide and consistent, so I
+expect the gate to catch all 5 — but I'm leaving the target itself at 4 of 5
+since it's one of the three pre-written criteria I'm not meant to edit.
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
 
