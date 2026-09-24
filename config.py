@@ -33,7 +33,7 @@ CHUNK_OVERLAP = 120     # characters shared between neighbouring chunks
 
 # ─── Retrieval (Milestone 4) ─────────────────────────────────────────────────
 
-TOP_K = 5               # how many chunks to pull back per question
+TOP_K = 8               # how many chunks to pull back per question
 
 # The relevance gate. If the best chunk is further away than this, the system
 # refuses to answer instead of handing the model thin material.
@@ -44,6 +44,11 @@ TOP_K = 5               # how many chunks to pull back per question
 # measure your own two groups of distances and put the cutoff in the gap.
 # Most corpora land somewhere between 0.45 and 0.75.
 THRESHOLD = 0.6
+
+# ─── Hybrid search (unit 2 improvement) ──────────────────────────────────────
+# Weight given to keyword (BM25) score vs semantic score when combining.
+# 0.0 = pure semantic (original behavior), 1.0 = pure keyword.
+HYBRID_BM25_WEIGHT = 0.3
 
 
 # ─── Models ──────────────────────────────────────────────────────────────────

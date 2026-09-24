@@ -28,7 +28,7 @@ from dataclasses import dataclass
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 import chromadb  # noqa: E402
-
+from rank_bm25 import BM25Okapi
 import config
 from chunker import Chunk
 
@@ -178,6 +178,55 @@ def build_index(
     return len(chunks)
 
 
+def _bm25_rerank(
+    question: str,
+    candidates: list[Result],
+    top_k: int,
+) -> list[Result]:
+    """
+    Re-rank Chroma's candidates using BM25 keyword overlap, blended with the
+    existing semantic distance.
+
+    IMPORTANT: the semantic distance is left in its original, calibrated
+    cosine scale (0 = identical, ~1 = unrelated) so the 0.6 relevance cutoff
+    still means what it always meant. Only BM25's raw score — which has no
+    natural ceiling — gets normalized to 0-1 within this candidate pool.
+    Rescaling the semantic distance too would make every query's best match
+    look artificially close to 0, breaking the relevance gate.
+    """
+    if not candidates:
+        return candidates
+
+    tokenized_corpus = [c.text.lower().split() for c in candidates]
+    bm25 = BM25Okapi(tokenized_corpus)
+    bm25_scores = bm25.get_scores(question.lower().split())
+
+    bm25_min, bm25_max = min(bm25_scores), max(bm25_scores)
+    bm25_range = (bm25_max - bm25_min) or 1.0
+    # Normalized BM25 "goodness", 0 (no keyword match) to 1 (best in pool).
+    bm25_goodness = [(s - bm25_min) / bm25_range for s in bm25_scores]
+    # Convert to a "distance" (lower is better) on the same 0-1 scale as
+    # cosine distance, so it can be blended directly with sem_distance.
+    bm25_distance = [1 - g for g in bm25_goodness]
+
+    weight = config.HYBRID_BM25_WEIGHT
+    combined = []
+    for cand, bm25_d in zip(candidates, bm25_distance):
+        blended_distance = (1 - weight) * cand.distance + weight * bm25_d
+        combined.append(
+            Result(
+                text=cand.text,
+                source=cand.source,
+                label=cand.label,
+                distance=blended_distance,
+                produced_by=cand.produced_by,
+            )
+        )
+
+    combined.sort(key=lambda r: r.distance)
+    return combined[:top_k]
+
+
 def search(
     question: str,
     top_k: int | None = None,
@@ -199,16 +248,17 @@ def search(
             f"No index called '{name}'. Run `python app.py index` first."
         ) from exc
 
+    pool_size = min(max(top_k * 4, 20), collection.count())
     raw = collection.query(
         query_embeddings=embed([question]),
-        n_results=min(top_k, collection.count()),
+        n_results=pool_size,
     )
 
     results: list[Result] = []
     for text, meta, distance in zip(
         raw["documents"][0], raw["metadatas"][0], raw["distances"][0]
     ):
-        results.append(
+                results.append(
             Result(
                 text=text,
                 source=str(meta.get("source", "unknown")),
@@ -217,7 +267,8 @@ def search(
                 produced_by=str(meta.get("produced_by", "unknown")),
             )
         )
-    return results
+
+    return _bm25_rerank(question, results, top_k)
 
 
 def index_exists(corpus: str | None = None, variant: str = "default") -> bool:
