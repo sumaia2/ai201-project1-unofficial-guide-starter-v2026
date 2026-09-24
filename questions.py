@@ -21,7 +21,7 @@ Swap them for your own if you like. Keep five of them either way: criterion 3
 names a target of "4 of 5", and four of three is not a thing.
 """
 
-questions = [
+QUESTIONS = [
     {
         "question": "What are the wait times like at Halden Hall dining?",
         "expects": "8 minutes"
